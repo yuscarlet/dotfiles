@@ -1,0 +1,124 @@
+# 基本設定
+autoload colors
+colors
+PROMPT=$'%{\e[$[32]m%}[%n@%m %1~] %(!.#.$) %{${reset_color}%}'
+export TERM=xterm-256color
+export PATH=/usr/local/bin:$PATH
+setopt prompt_subst # 変数展開など便利なプロント
+bindkey -v # viライクなキーバインド
+export LANG=ja_JP.UTF-8 # 日本語環境
+export EDITOR=vim # エディタはvi
+
+# 補完
+autoload -U compinit # 補完機能
+compinit -u # 補完を賢くする
+setopt autopushd # cdの履歴表示、cd - で一つ前のディレクトリへ
+setopt pushd_ignore_dups # 同ディレクトリを履歴に追加しない
+setopt auto_cd # ディレクトリ名のみでcd
+setopt list_packed # リストを詰めて表示
+setopt list_types # 補完一覧をファイル種別に表示
+setopt correct # コマンドのスペルチェックを有効に
+#autoload predict-on
+#predict-on
+
+# 補完の強化
+zstyle ':completion:*' verbose yes
+#zstyle ':completion:*' completer _expand _complete _match _prefix _approximate _list _history
+zstyle ':completion:*:messages' format '%F{YELLOW}%d'$DEFAULT
+zstyle ':completion:*:warnings' format '%F{RED}No matches for:''%F{YELLOW} %d'$DEFAULT
+zstyle ':completion:*:descriptions' format '%F{YELLOW}completing %B%d%b'$DEFAULT
+zstyle ':completion:*:options' description 'yes'
+zstyle ':completion:*:descriptions' format '%F{yellow}Completing %B%d%b%f'$DEFAULT
+
+# マッチ種別を別々に表示
+zstyle ':completion:*' group-name ''
+
+# 履歴
+HISTFILE=~/.zsh_history # historyファイル
+HISTFILESIZE=1000000
+HISTSIZE=1000000 # ファイルサイズ
+SAVEHIST=1000000 # saveする量
+setopt hist_ignore_dups # 重複を記録しない
+setopt hist_reduce_blanks # スペース排除
+setopt share_history # 履歴ファイルを共有
+setopt EXTENDED_HISTORY # zshの開始終了を記録
+
+# grep
+export GREP_OPTIONS
+GREP_OPTIONS="--binary-files=without-match --directories=recurse --exclude=\*.tmp --exclude-dir=.svn --exclude-dir=.git --exclude-dir=.deps --exclude-dir=.libs --color=auto"
+
+# history 操作
+autoload history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+bindkey "^P" history-beginning-search-backward-end
+bindkey "^N" history-beginning-search-forward-end
+
+# 色の定義
+local DEFAULT=$'%{^[[m%}'$
+local RED=$'%{^[[1;31m%}'$
+local GREEN=$'%{^[[1;32m%}'$
+local YELLOW=$'%{^[[1;33m%}'$
+local BLUE=$'%{^[[1;34m%}'$
+local PURPLE=$'%{^[[1;35m%}'$
+local LIGHT_BLUE=$'%{^[[1;36m%}'$
+local WHITE=$'%{^[[1;37m%}'$
+
+# alias
+alias vi=vim # vi で vim 起動
+alias ccl='gcc -O3 -march=nocona -mfpmath=sse -mmmx -msse2 -msse3 -mssse3 -m3dno\w -ftree-vectorize -ftree-vectorizer-verbose=1'
+alias glut='gcc -framework OpenGL -framework GLUT'
+alias vpn='sudo ifconfig en1 mtu 1400'
+alias gentoo='$HOME/Gentoo/startprefix'
+alias gtkwave='open /Applications/gtkwave.app/'
+alias gnuplot='open /Applications/gnuplot.app/'
+alias java='java -Dfile.encoding=UTF-8'
+alias diff='colordiff'
+
+# ls
+case "${OSTYPE}" in
+	darwin*)
+		alias ls='gls --color'
+		alias ll='gls -l --color'
+		alias la='gls -la --color'
+		;;
+	linux*)
+		alias ls='ls --color'
+		alias ll='ls -l --color'
+		alias la='ls -la --color'
+		;;
+esac
+
+# ls のカラー設定
+export LSCOLORS=gxfxcxdxbxegedabagacad
+export LS_COLORS='no=00:fi=00:di=00;36:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+[ -f ~/.zshrc.include ] && source ~/.zshrc.include # 設定ファイルのinclude
+
+# Attache tmux
+if ( ! test $TMUX ) && ( ! expr $TERM : "^screen" > /dev/null ) && which tmux > /dev/null; then
+	if ( tmux has-session ); then
+		session=`tmux list-sessions | grep -e '^[0-9].*]$' | head -n 1 | sed -e 's/^\([0-9]\+\).*$/\1/'`
+		if [ -n "$session" ]; then
+			echo "Attache tmux session $session."
+			tmux attach-session -t $session
+		else
+			echo "Session has been already attached."
+			tmux list-sessions
+		fi
+	else
+		echo "Create new tmux session."
+		tmux
+	fi
+fi
+
+# python
+export PYENV_ROOT="${HOME}/.pyenv"
+if [ -d "${PYENV_ROOT}" ]; then
+    export PATH=${PYENV_ROOT}/bin:$PATH
+    eval "$(pyenv init -)"
+fi
+# version を変える
+#pyenv shell miniconda3-3.7.0
+

@@ -1,0 +1,202 @@
+" --------------------------------------------------------
+"              yuscarlet's VIM initialize file
+" --------------------------------------------------------
+
+"set nocompatible
+"filetype off
+
+"set rtp+=~/vimfiles/vundle.git/        #vundleのディレクトリ
+"call vundle#rc()
+"Bundle 'Shougo/neocomplcache'        #Bundle...は使用するプラグインを書く。詳細はguthubのREADMEが詳しい。
+"Bundle 'Shougo/unite.vim'
+"Bundle 'thinca/vim-ref'
+"Bundle 'thinca/vim-quickrun'
+"filetype plugin indent on     " required!
+
+
+"Bundle 'itchyny/lightline.vim'
+
+"" autocmd
+" --------------------------------------------------------
+autocmd BufWritePre * :%s/[ \t][ \t]*$//ge
+"autocmd BufWritePre * :%s/\t/    /ge
+"autocmd BufReadPre  * :%s/    /\t/ge
+
+"" auto choose charactor code
+" --------------------------------------------------------
+source ~/.vim/script/autoCharaCode.vim
+
+" set options
+" --------------------------------------------------------
+set number wrapscan hid autoindent smartindent shiftround noexpandtab
+set showcmd nolist hlsearch ignorecase smartcase incsearch nowrap
+set nocompatible cursorline
+set noautoindent
+set backupdir=~/.vim/backup
+set bs=2
+set directory=~/.vim/swap
+set fileformats=unix,dos,mac
+" set foldmethod=syntax
+set iminsert=0
+set imsearch=0
+set laststatus=2
+set listchars=tab:>-,extends:<,trail:-,eol:<
+set shiftwidth=2
+set shortmess+=I
+set tabstop=2
+set textwidth=0
+set whichwrap+=h,l
+set mouse=a
+set swapfile
+
+" Designation of using compiler.
+compiler gcc
+
+" Enable highlight and indent.
+syntax on
+"filetype plugin indent on
+
+" colorscheme
+"colorscheme freya
+"colorscheme inkpot
+colorscheme molokai
+"colorscheme jellybeans
+"colorscheme railscasts
+"colorscheme pyte
+
+" Disable IME on normal-mode
+nnoremap <silent> <C-^> <NOP>
+augroup InsModeAu
+    autocmd!
+    autocmd InsertEnter,CmdwinEnter * set noimdisable
+    autocmd InsertLeave,CmdwinLeave * set imdisable
+augroup END
+
+
+" Setting of shortcut key.
+nnoremap <silent> v<S-b> /{<CR>%v%0
+nnoremap <silent> <S-i> "="\n"<CR>pi
+nnoremap <silent> O "="\n"<CR>p<UP>
+nnoremap <silent> <ESC><ESC> :noh<CR>
+nnoremap / :noh<CR> /
+autocmd FileType help nnoremap <buffer> q <C-w>c
+nnoremap <C-h> :help<CR>
+nnoremap <C-h><C-h> :help <C-r><C-w><CR>
+
+
+" Show spaces
+" --------------------------------------------------------
+"highlight ZenkakuSpace cterm=underline ctermfg=red guibg=darkgray
+"match ZenkakuSpace /　/
+
+highlight WhitespaceAtEndOfline ctermbg=red guibg=red
+match WhitespaceAtEndOfline /[ \t][ \t]*$/
+
+
+" StatusLine settings
+" --------------------------------------------------------
+" Designation of displayed informations in StatusLine
+set statusline=%n\:[%f\]\|%{(&fenc!=''?&fenc:&enc).'\|'}%m%r%=<0x%02B>%=[%l:%c][%l/%L:%p%%]
+"set statusline=%=[%l:%c/%L]<0x%02B>[%{(&fenc!=''?&fenc:&enc)}]
+
+
+" Colors setting of StatusLine
+highlight StatusLine term=NONE cterm=NONE ctermfg=black ctermbg=white
+highlight Visual cterm=reverse
+highlight VisualNOS cterm=bold
+
+
+" buftabs.vim
+" --------------------------------------------------------
+noremap <silent> <C-k> :bprev<CR>
+noremap <silent> <C-j> :bnext<CR>
+let g:buftabs_in_statusline=1
+let g:buftabs_only_basename=1
+
+
+"  Binary edit by xxd
+"  if be ran with "-b" option or open *.bin files
+" --------------------------------------------------------
+augroup BinaryXXD
+  autocmd!
+  autocmd BufReadPre   *.bin let &binary = 1
+  autocmd BufReadPost  * if &binary | silent %!xxd
+  autocmd BufReadPost  * set ft=xxd | endif
+  autocmd BufWritePre  * if &binary | %!xxd -r
+  autocmd BufWritePre  * endif
+  autocmd BufWritePost * if &binary | silent %!xxd
+  autocmd BufWritePost * set nomod  | endif
+augroup END
+
+
+" Make parent directory if it isn't existed.
+"--------------------------------------------------------
+augroup AutoMkdir
+  au!
+  au BufNewFile * call PromptAndMakeDirectory()
+augroup END
+
+function! PromptAndMakeDirectory()
+  let dir = expand("<afile>:p:h")
+  if !isdirectory(dir) && confirm("Create a new directory [".dir."]?", "&Yes\n&No") == 1
+    call mkdir(dir, "p")
+    " Reset fullpath of the buffer in order to avoid problems when using autochdir.
+    file %
+  endif
+endfunction
+
+
+" Autocompletion using the TAB key
+" This function determines, wether we are on the start of the line text (then tab indents) or
+" if we want to try autocompletion
+function! InsertTabWrapper()
+  let col = col('.') - 1
+  if !col || getline('.')[col - 1] !~ '\k\|\<\|\>\|/|\|\!'
+    return "\<TAB>"
+  else
+    if pumvisible()
+      return "\<C-N>"
+    else
+      return "\<C-N>\<C-P>"
+    end
+  endif
+endfunction
+" Remap the tab key to select action with InsertTabWrapper
+inoremap <tab> <c-r>=InsertTabWrapper()<CR>
+
+
+" Use neocomplcache.
+let g:neocomplcache_enable_at_startup         = 1
+" Use smartcase.
+let g:NeoComplCache_SmartCase                 = 1
+" Use previous keyword completion.
+let g:NeoComplCache_PreviousKeywordCompletion = 1
+" Use preview window.
+let g:NeoComplCache_EnableInfo                = 1
+" Use camel case completion.
+let g:NeoComplCache_EnableCamelCaseCompletion = 1
+" Use underbar completion.
+let g:NeoComplCache_EnableUnderbarCompletion  = 1
+" Set minimum syntax keyword length.
+let g:NeoComplCache_MinSyntaxLength           = 3
+" Set skip input time.
+let g:NeoComplCache_SkipInputTime             = '0.1'
+
+""
+"" Vim-LaTeX
+""
+set shellslash
+set grepprg=grep\ -nH\ $*
+let g:tex_flavor='latex'
+let g:Tex_DefaultTargetFormat = 'pdf'
+let g:Tex_FormatDependency_ps = 'dvi,ps'
+let g:Tex_FormatDependency_pdf = 'dvi,pdf'
+let g:Tex_CompileRule_dvi = 'platex -guess-input-enc -synctex=1 -interaction=nonstopmode $*'
+let g:Tex_CompileRule_ps = 'dvips -Ppdf -o $*.ps $*.dvi'
+let g:Tex_CompileRule_pdf = 'dvipdfmx $*.dvi'
+let g:Tex_BibtexFlavor = 'pbibtex'
+let g:Tex_MakeIndexFlavor = 'mendex $*.idx'
+let g:Tex_ViewRule_dvi = 'C:\w32tex\dviout\dviout.exe -1'
+let g:Tex_ViewRule_ps = 'C:\Program Files\Ghostgum\gsview\gsview32.exe -e'
+let g:Tex_ViewRule_pdf = 'C:\w32tex\share\texworks\TeXworks.exe'
+
