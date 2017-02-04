@@ -120,5 +120,5 @@ if [ -d "${PYENV_ROOT}" ]; then
     eval "$(pyenv init -)"
 fi
 # version を変える
-#pyenv shell miniconda3-3.7.0
+pyenv shell miniconda3-3.7.0
 
